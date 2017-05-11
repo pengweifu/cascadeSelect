@@ -1,0 +1,43 @@
+.cascade-container{
+    position: absolute;
+    left: 0;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    border-radius: 5px;
+    background: #fff;
+  }
+  .cascade-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    height: 240px;
+    width: 120px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    line-height: 24px;
+    vertical-align: top;
+    font-size: 12px;
+  }
+  .cascade-container li {
+    display: block;
+    width: 100%;
+    padding:0 10px;
+    height: 24px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    position: relative;
+    color:#666;
+  }
+  .cascade-container ul:last-child li::after {
+    display: none;
+  }
+  .cascade-container li:not(:first-child)::after {
+    content:'>';
+    position: absolute;
+    right: 2px;
+  }
+  .cascade-container li.selected {
+    background: #eee;
+  }
