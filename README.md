@@ -4,7 +4,7 @@ cascade Select
 
 # demo
 
-`
+```
 <link rel="stylesheet" href="cascadeSelect.css">
 <div id="cascade-box">
     <input type="text" name="" data-value="3058" id="cascade-title" onclick="javascript:selectArea(this);">
@@ -53,7 +53,7 @@ var iosProvinces = [
 ];
 function selectArea(obj){
     new cascadeSelect(iosProvinces,{
-      level:2,
+      level:1,
       parentBox:obj,
       callback:function(container,value,title){
         //
@@ -61,4 +61,4 @@ function selectArea(obj){
     });
   }
   </script>
-`
+```
