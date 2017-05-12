@@ -80,9 +80,6 @@
     };
 
     function cascadeSelect(data, options) {
-      if (!cascadeSelectUtil.isArray(data) || data.length === 0) {
-        return;
-      }
       var defaults = {
         // json数据体相关部分
         nameField: 'id', //数据对象的Id对应键名
@@ -90,6 +87,7 @@
         titleField: 'value', //数据对象的title对应键名
         autoClose:true, // 是否在选择最后一级数据后关闭插件
         level:1, //数据对象层级,仅在autoClose为true时有用
+        ajax:false, // 是否ajax获取数据
 
         // DOM元素相关部分
         parentBox:document.body, // 插件上级包裹元素
@@ -98,13 +96,25 @@
         defValue: '0', //默认的选项值
 
         //回调函数
-        callback: function(container,value,title) {
+        afterChange: function(container,value,title) {
+        },
+        pullData:function(parentId,callback){
+          //
         },
       };
-      this.data = data;
       this.prevArr = new Array();
       this.parentNodes = new Array();
       this.option = cascadeSelectUtil.extend(defaults, options);
+
+      if (this.option.ajax) {
+        this.option.pullData(0,function(data2){
+          data=data2;
+        });
+      }
+      if (!cascadeSelectUtil.isArray(data) || data.length === 0) {
+        return;
+      }
+      this.data=data;
       var container = document.createElement('div');
       var index=Math.floor(Math.random() * 1000 + 1);
       var initVal=this.option.parentBox.getAttribute('data-value');
@@ -114,9 +124,9 @@
       this.container=container;
       parentBox.style.position='relative';
       parentBox.appendChild(container);
-      this.option.initVal=initVal.substring(initVal.lastIndexOf(',')+1);
+      this.option.initVal=initVal!=null?initVal.substring(initVal.lastIndexOf(',')+1):0;
       if (this.option.initVal && this.option.initVal > 0) {
-        this.showmlcascadelevel();
+        this.showAllLevel();
       } else {
         this.showRoot();
       }
@@ -125,7 +135,7 @@
       /**
        * 显示多级
        */
-      showmlcascadelevel: function() {
+      showAllLevel: function() {
         var nodes = this.data;
         //得到初始化节点
         var node = this.getItself(this.option.initVal, nodes);
@@ -304,7 +314,7 @@
         }else{
           this.option.parentBox.innerHTML=title;
         }
-        this.option.callback(this.container,value,title);
+        this.option.afterChange(this.container,value,title);
         if (this.option.autoClose && this.option.level==this.prevArr.length || this.getValue(select)==this.option.defValue) {
 
           this.container.parentNode!=null && this.container.parentNode.removeChild(this.container);
@@ -314,14 +324,27 @@
        * 获取子级节点
        */
       childList: function(thisVal) {
-        var childArr = new Array();
-        var _data = this.data;
-        for (var i = 0; i < _data.length; i++) {
-          if (thisVal == _data[i][this.option.parentField]) {
-            childArr.push(_data[i]);
+        var childArr = new Array(),that=this;
+        var _data;
+        if (this.option.ajax) {
+          this.option.pullData(thisVal,function(data2){
+            _data=data2;
+            for (var i = 0; i < _data.length; i++) {
+              if (thisVal == _data[i][that.option.parentField]) {
+                childArr.push(_data[i]);
+              }
+            }
+            that.createSelect(childArr);
+          });
+        }else{
+          _data=this.data;
+          for (var i = 0; i < _data.length; i++) {
+            if (thisVal == _data[i][this.option.parentField]) {
+              childArr.push(_data[i]);
+            }
           }
+          this.createSelect(childArr);
         }
-        this.createSelect(childArr);
       },
       /**
        * 删除当前选择的select后所所有的元素
