@@ -118,7 +118,17 @@
       var container = document.createElement('div');
       var index=Math.floor(Math.random() * 1000 + 1);
       var initVal=this.option.parentBox.getAttribute('data-value');
-      var parentBox=this.option.parentBox.tagName=='INPUT'?this.option.parentBox.parentNode:this.option.parentBox;
+      var parentBox;
+      if (this.option.parentBox.tagName=='INPUT') {
+        parentBox=this.option.parentBox.parentNode;
+      }else{
+        parentBox=this.option.parentBox;
+        if (cascadeSelectUtil.getByClass(parentBox, 'cascade').length==0) {
+          var titleSpan=document.createElement('span');
+          titleSpan.className='cascade';
+          parentBox.appendChild(titleSpan);
+        }
+      }
       container.className='cascade-container';
       container.setAttribute('id','cascade-container'+index);
       this.container=container;
@@ -312,11 +322,10 @@
         if (this.option.parentBox.tagName=='INPUT') {
           this.option.parentBox.value=title;
         }else{
-          this.option.parentBox.innerHTML=title;
+          this.container.previousSibling.innerHTML=title;
         }
         this.option.afterChange(this.container,value,title);
         if (this.option.autoClose && this.option.level==this.prevArr.length || this.getValue(select)==this.option.defValue) {
-
           this.container.parentNode!=null && this.container.parentNode.removeChild(this.container);
         }
       },
