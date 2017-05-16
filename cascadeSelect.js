@@ -98,9 +98,7 @@
         //回调函数
         afterChange: function(container,value,title) {
         },
-        pullData:function(parentId,callback){
-          //
-        },
+        pullData:function(parentId,callback){},
       };
       this.prevArr = new Array();
       this.parentNodes = new Array();
@@ -269,6 +267,7 @@
         var ol = select.getElementsByTagName('li').length;
         for (var i = 0; i < ol; i++) {
           if (cascadeSelectUtil.hasClass(select.getElementsByTagName('li')[i], 'selected')) {
+            console.log(select.getElementsByTagName('li')[i].getAttribute('data-value'))
             return select.getElementsByTagName('li')[i].getAttribute('data-value');
           }
         }
@@ -293,7 +292,7 @@
         this.prevArr = new Array();
         //获取同级前面的元素
         this.prevNodes(select);
-        var ids,title,value=this.getValue(select);
+        var title,ids='',value=this.getValue(select);
         if (this.option.fullPath) {
           this.childList(value);
           for (var i = 0; i < this.prevArr.length; i++) {
@@ -324,9 +323,11 @@
         }else{
           this.container.previousSibling.innerHTML=title;
         }
-        this.option.afterChange(this.container,value,title);
-        if (this.option.autoClose && this.option.level==this.prevArr.length || this.getValue(select)==this.option.defValue) {
-          this.container.parentNode!=null && this.container.parentNode.removeChild(this.container);
+        if (this.option.level==this.prevArr.length || this.getValue(select)==this.option.defValue) {
+          this.option.afterChange(this.container,value,title);
+          if (this.option.autoClose) {
+            this.container.parentNode!=null && this.container.parentNode.removeChild(this.container);
+          }
         }
       },
       /**
