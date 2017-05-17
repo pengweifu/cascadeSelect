@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title></title>
+  <link rel="stylesheet" href="cascadeSelect.css">
+  <script type="text/javascript" src="https://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
+</head>
+
+<body>
+  <style type="text/css">
+  #cascade-box{
+    margin-top: 200px;
+    margin-left: 100px;
+    background: #f00;
+    min-height: 1em;
+    min-width: 100px;
+  }
+  </style>
+  <div id="cascade-box">
+    <input type="text" name="" data-value="3058" id="cascade-title" onclick="javascript:selectArea(this);">
+  </div>
+  <div id="cascade-box" data-value="3058" id="cascade-title" onclick="javascript:selectArea(this);">
+  </div>
+  <script type="text/javascript" src="cascadeSelect.js"></script>
+  <script type="text/javascript">
+  function selectArea(obj){
+    new cascadeSelect(iosProvinces,{
+      level:3,
+      parentBox:obj,
+      ajax:1,
+      afterChange:function(container,value,title){
+        //
+        },
+      pullData:function(parentId,callback){
+        var datas;
+        $.ajax({
+          url: 'areaData_v2.js',
+          dataType: 'script',
+          async:false,
+          success:function(data,textStatus){
+            if (parentId==0) {
+              datas=iosProvinces;
+            }else if(parentId<37){
+              datas=iosCitys;
+            }else{
+              datas=iosCountys;
+            }
+            callback(datas);
+          },
+        });
+      },
+    });
+  }
+  </script>
+</body>
+
+</html>
