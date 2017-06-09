@@ -114,9 +114,8 @@
       }
       this.data=data;
       var container = document.createElement('div');
-      var index=Math.floor(Math.random() * 1000 + 1);
-      var initVal=this.option.parentBox.getAttribute('data-value');
-      var parentBox;
+      var initVals,initVal=this.option.parentBox.getAttribute('data-path');
+      var parentBox,childLi;
       if (this.option.parentBox.tagName=='INPUT') {
         parentBox=this.option.parentBox.parentNode;
       }else{
@@ -128,44 +127,32 @@
         }
       }
       container.className='cascade-container';
-      container.setAttribute('id','cascade-container'+index);
       this.container=container;
       parentBox.style.position='relative';
       parentBox.appendChild(container);
-      this.option.initVal=initVal!=null?initVal.substring(initVal.lastIndexOf(',')+1):0;
-      if (this.option.initVal && this.option.initVal > 0) {
-        this.showAllLevel();
-      } else {
-        this.showRoot();
+      document.addEventListener('click',function(e){
+        if (e.target.nextElementSibling!=container) {
+          container.parentNode!=null && container.parentNode.removeChild(container);
+        }
+      });
+      parentBox.addEventListener('click',function(e){
+        window.event?e.cancelBubble=true:e.stopPropagation();
+      })
+      this.showRoot();
+      if (initVal!=null) {
+        initVals=initVal.split(',');
+        for (var i = 0; i < initVals.length; i++) {
+          this.childList(initVals[i]);
+          childLi=container.getElementsByTagName('ul')[i].getElementsByTagName('li');
+          for (var ii = 0; ii < childLi.length; ii++) {
+            if(childLi[ii].getAttribute('data-value')==initVals[i]){
+              childLi[ii].className = 'selected';
+            }
+          }
+        }
       }
     };
     cascadeSelect.prototype = {
-      /**
-       * 显示多级
-       */
-      showAllLevel: function() {
-        var nodes = this.data;
-        //得到初始化节点
-        var node = this.getItself(this.option.initVal, nodes);
-        if (node == null) {
-          this.showRoot();
-          return false;
-        }
-        //得到初始化节点的父节点链
-        this.parentLinkList(node, nodes);
-        if (this.parentNodes.length > 0) {
-          for (var i = 0; i < this.parentNodes.length; i++) {
-            if (i == 0) {
-              this.showRoot();
-            } else {
-              var arr = this.sameLevel(this.parentNodes[i], nodes);
-              //创建select元素
-              this.createSelect(arr);
-            }
-          }
-          this.childList(this.option.initVal);
-        }
-      },
       /**
        * 只显示根级节点
        */
@@ -185,39 +172,6 @@
         this.createSelect(rootArr);
       },
       /**
-       * 获取初始化节点
-       */
-      getItself: function(initVal, nodes) {
-        for (var i = 0; i < nodes.length; i++) {
-          if (initVal == nodes[i][this.option.nameField]) {
-            return nodes[i];
-          }
-        }
-      },
-      /**
-       * 获取父级链
-       */
-      parentLinkList: function(node, nodes) {
-        this.parentNodes.splice(0, 0, node);
-        for (var i = 0; i < nodes.length; i++) {
-          if (node[this.option.parentField] == nodes[i][this.option.nameField]) {
-            this.parentLinkList(nodes[i], nodes);
-          }
-        }
-      },
-      /**
-       * 获取同级节点
-       */
-      sameLevel: function(node, nodes) {
-        var sameArr = new Array();
-        for (var i = 0; i < nodes.length; i++) {
-          if (node[this.option.parentField] == nodes[i][this.option.parentField]) {
-            sameArr.push(nodes[i]);
-          }
-        }
-        return sameArr;
-      },
-      /**
        * 创建select元素
        */
       createSelect: function(arr) {
@@ -232,7 +186,6 @@
           for (var i = 0; i < arr.length; i++) {
             option = document.createElement('li');
             option.setAttribute('data-value', arr[i][this.option.nameField]);
-            this.selected(option, arr[i]);
             text = document.createTextNode(arr[i][this.option.titleField]);
             option.appendChild(text);
             select.appendChild(option);
@@ -250,24 +203,10 @@
           });
         }
       },
-      /**
-       * 设置选中项
-       */
-      selected: function(option, node) {
-        if (this.parentNodes.length > 0) {
-          for (var i = 0; i < this.parentNodes.length; i++) {
-            if (node[this.option.nameField] == this.parentNodes[i][this.option.nameField]) {
-              option.className = 'selected';
-              break;
-            }
-          }
-        }
-      },
       getValue:function(select){
         var ol = select.getElementsByTagName('li').length;
         for (var i = 0; i < ol; i++) {
           if (cascadeSelectUtil.hasClass(select.getElementsByTagName('li')[i], 'selected')) {
-            console.log(select.getElementsByTagName('li')[i].getAttribute('data-value'))
             return select.getElementsByTagName('li')[i].getAttribute('data-value');
           }
         }
@@ -292,24 +231,25 @@
         this.prevArr = new Array();
         //获取同级前面的元素
         this.prevNodes(select);
-        var title,ids='',value=this.getValue(select);
-        if (this.option.fullPath) {
-          this.childList(value);
-          for (var i = 0; i < this.prevArr.length; i++) {
-            if (this.getValue(this.prevArr[i]) > this.option.defValue) {
-              ids += this.getValue(this.prevArr[i]) + ',';
-            }
+        var title,path,ids='',value=this.getValue(select);
+        this.childList(value);
+        for (var i = 0; i < this.prevArr.length; i++) {
+          if (this.getValue(this.prevArr[i]) > this.option.defValue) {
+            ids += this.getValue(this.prevArr[i]) + ',';
           }
-          value = cascadeSelectUtil.trim(ids, ',');
-        }else{
-          if (value > this.option.defValue) {
-            this.childList(value);
-          } else {
+        }
+        path = cascadeSelectUtil.trim(ids, ',');
+        if (!this.option.fullPath) {
+          if (value <= this.option.defValue) {
             if (this.prevArr.length > 0) {
               value=this.prevArr.length >= 2?this.getValue(this.prevArr[this.prevArr.length - 2]):this.getValue(this.prevArr[this.prevArr.length - 1]);
             }
           }
+        }else{
+          value=path;
         }
+        this.option.parentBox.setAttribute('data-value',value);
+        this.option.parentBox.setAttribute('data-path',path);
         ids='';
         for (var i = 0; i < this.prevArr.length; i++) {
           if (this.getValue(this.prevArr[i]) > this.option.defValue) {
@@ -317,11 +257,10 @@
           }
         }
         title = cascadeSelectUtil.trim(ids, ' ');
-        this.option.parentBox.setAttribute('data-value',value);
         if (this.option.parentBox.tagName=='INPUT') {
           this.option.parentBox.value=title;
         }else{
-          this.container.previousSibling.innerHTML=title;
+          this.container.previousElementSibling.innerHTML=title;
         }
         if (this.option.level==this.prevArr.length || this.getValue(select)==this.option.defValue) {
           this.option.afterChange(this.container,value,title);
