@@ -130,14 +130,25 @@
       this.container=container;
       parentBox.style.position='relative';
       parentBox.appendChild(container);
-      document.addEventListener('click',function(e){
-        if (e.target.nextElementSibling!=container) {
-          container.parentNode!=null && container.parentNode.removeChild(container);
-        }
-      });
-      parentBox.addEventListener('click',function(e){
-        window.event?e.cancelBubble=true:e.stopPropagation();
-      })
+      if (document.addEventListener) {
+        document.addEventListener('click',function(e){
+          if (e.target.nextElementSibling!=container) {
+            container.parentNode!=null && container.parentNode.removeChild(container);
+          }
+        });
+        parentBox.addEventListener('click',function(e){
+          window.event?e.cancelBubble=true:e.stopPropagation();
+        });
+      }else{
+        document.attachEvent('onclick',function(e){
+          if (window.event.srcElement.nextElementSibling!=container) {
+            container.parentNode!=null && container.parentNode.removeChild(container);
+          }
+        });
+        parentBox.attachEvent('onclick',function(e){
+          window.event?e.cancelBubble=true:e.stopPropagation();
+        });
+      }
       this.showRoot();
       if (initVal!=null) {
         initVals=initVal.split(',');
@@ -192,15 +203,27 @@
           }
           var elem = this.container;
           elem.appendChild(select);
-          select.addEventListener('click', function(e) {
-            window.event?e.cancelBubble=true:e.stopPropagation();
-            var re = new RegExp("(^|\\s)selected(\\s|$)", 'g');
-            for (var i = 0; i < cascadeSelectUtil.getByClass(select, 'selected').length; i++) {
-              cascadeSelectUtil.getByClass(select, 'selected')[i].className = cascadeSelectUtil.getByClass(select, 'selected')[i].className.replace(re, '');
-            }
-            e.target.className = 'selected';
-            that.changeSelect(select);
-          });
+          if (document.addEventListener) {
+            select.addEventListener('click', function(e) {
+              window.event?e.cancelBubble=true:e.stopPropagation();
+              var re = new RegExp("(^|\\s)selected(\\s|$)", 'g');
+              for (var i = 0; i < cascadeSelectUtil.getByClass(select, 'selected').length; i++) {
+                cascadeSelectUtil.getByClass(select, 'selected')[i].className = cascadeSelectUtil.getByClass(select, 'selected')[i].className.replace(re, '');
+              }
+              e.target.className = 'selected';
+              that.changeSelect(select);
+            });
+          }else{
+            select.attachEvent('onclick', function(e) {
+              window.event?e.cancelBubble=true:e.stopPropagation();
+              var re = new RegExp("(^|\\s)selected(\\s|$)", 'g');
+              for (var i = 0; i < cascadeSelectUtil.getByClass(select, 'selected').length; i++) {
+                cascadeSelectUtil.getByClass(select, 'selected')[i].className = cascadeSelectUtil.getByClass(select, 'selected')[i].className.replace(re, '');
+              }
+              window.event.srcElement.className = 'selected';
+              that.changeSelect(select);
+            });
+          }
         }
       },
       getValue:function(select){
@@ -260,7 +283,15 @@
         if (this.option.parentBox.tagName=='INPUT') {
           this.option.parentBox.value=title;
         }else{
-          this.container.previousElementSibling.innerHTML=title;
+          if (this.container.previousElementSibling) {
+            this.container.previousElementSibling.innerHTML=title;
+          }else{
+            var el=this.container.previousSibling;
+            while(el && el.nodeType!==1){
+              el=el.previousSibling;
+            }
+            el.innerHTML=title;
+          }
         }
         if (this.option.level==this.prevArr.length || this.getValue(select)==this.option.defValue) {
           this.option.afterChange(this.container,value,title);
